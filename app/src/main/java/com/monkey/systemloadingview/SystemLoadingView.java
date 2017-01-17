@@ -18,14 +18,20 @@ import android.view.animation.LinearInterpolator;
  */
 public class SystemLoadingView extends View {
 
+    /* 加载动画的时长 */
     private long mAnimDuration = 1500;
+    /* 是否正在加载 */
     private boolean mIsLoading = false;
 
     private Paint mPaint;
+    /* 装有原始数据的路径 */
     private Path mPath;
+    /* 新截取的路径 */
     private Path mDst;
     private PathMeasure mPathMeasure;
+    /* 路径长度 */
     private float mPathLength;
+    /* 路径长度百分比 */
     private float mPathPercent;
 
     private int mColor;
@@ -81,21 +87,25 @@ public class SystemLoadingView extends View {
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         mPath.addCircle(w / 2, h / 2, mRadius, Path.Direction.CW);
         mPathMeasure = new PathMeasure();
-        mPathMeasure.setPath(mPath, false);
-        mPathLength = mPathMeasure.getLength();
+        mPathMeasure.setPath(mPath, false);//设置原始路径
+        mPathLength = mPathMeasure.getLength();//获取路径长度
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
+        //根据百分比动态设置新路径在老路径的起止点
         float stop = mPathLength * mPathPercent;
         float start = (float) (stop - ((0.5 - Math.abs(mPathPercent - 0.5)) * mPathLength * 4));
         mDst.reset();
 //        mDst.lineTo(0, 0);
+        //根据起止点截取出路径数据装载到新路径mDst中
         mPathMeasure.getSegment(start, stop, mDst, true);
+        //绘制新路径
         canvas.drawPath(mDst, mPaint);
     }
 
     private void startAnim() {
+        //设置属性动画，动态改变百分比
         ValueAnimator anim = ValueAnimator.ofFloat(0, 1);
         anim.setInterpolator(new DecelerateInterpolator());
         anim.setRepeatCount(ValueAnimator.INFINITE);
@@ -108,7 +118,7 @@ public class SystemLoadingView extends View {
             }
         });
         anim.start();
-
+        //再加一个旋转动画，形成角度视差
         ObjectAnimator animRotate = ObjectAnimator.ofFloat(this, View.ROTATION, 0, 360);
         animRotate.setInterpolator(new LinearInterpolator());
         animRotate.setRepeatCount(ValueAnimator.INFINITE);
